@@ -1,12 +1,10 @@
 #!/usr/bin/bash
 
-# 参数化输入
 folder_with_pdbs=${1:-"./inputs/"}
 output_dir=${2:-"./outputs/"}
 chains_to_design=${3:-"A"}
 design_only_positions=${4:-"5 413 174 177"}
 
-# 帮助信息
 if [ "$1" == "-h" ]; then
     echo "Usage: mpnn_design_specific.sh [folder_with_pdbs] [output_dir] [chains_to_design] [design_only_positions]"
     echo "Defaults:"
@@ -17,30 +15,25 @@ if [ "$1" == "-h" ]; then
     exit 0
 fi
 
-# 检查输入文件夹是否存在
 if [ ! -d $folder_with_pdbs ]; then
     echo "Error: Input folder $folder_with_pdbs does not exist."
     exit 1
 fi
 
-# 创建输出目录
 if [ ! -d $output_dir ]; then
     mkdir -p $output_dir
 fi
 
-# 定义中间文件路径
 path_for_parsed_chains=$output_dir"/parsed_pdbs.jsonl"
 path_for_assigned_chains=$output_dir"/assigned_pdbs.jsonl"
 path_for_fixed_positions=$output_dir"/fixed_pdbs.jsonl"
 
-# 运行日志
 echo "Starting ProteinMPNN pipeline..."
 echo "Input folder: $folder_with_pdbs"
 echo "Output directory: $output_dir"
 echo "Chains to design: $chains_to_design"
 echo "Design only positions: $design_only_positions"
 
-# 调用脚本
 python /data/dj/softwares/ProteinMPNN-main/helper_scripts/parse_multiple_chains.py \
     --input_path=$folder_with_pdbs --output_path=$path_for_parsed_chains
 if [ $? -ne 0 ]; then

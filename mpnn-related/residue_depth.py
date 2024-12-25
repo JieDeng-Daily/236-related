@@ -4,7 +4,6 @@ import argparse
 import pandas as pd
 from Bio.PDB import PDBParser, ResidueDepth
 
-# 三字母到单字母的映射字典
 THREE_TO_ONE = {
     "ALA": "A", "ARG": "R", "ASN": "N", "ASP": "D", "CYS": "C",
     "GLN": "Q", "GLU": "E", "GLY": "G", "HIS": "H", "ILE": "I",
@@ -18,21 +17,15 @@ def setup_msms_path(msms_dir):
     os.environ["PATH"] += os.pathsep + msms_dir
 
 def get_residue_one_letter(residue):
-    """
-    获取残基的单字母代码。如果无法解析，返回空字符串。
-    """
     return THREE_TO_ONE.get(residue.resname, '')
 
 def calculate_residue_depth_with_sequence(pdb_file, msms_tool_path):
-    # Set up MSMS tool path
     setup_msms_path(msms_tool_path)
     
-    # Parse PDB file
     parser = PDBParser()
     structure = parser.get_structure('structure', pdb_file)
     model = structure[0]
     
-    # Calculate residue depth and extract sequence
     rd = ResidueDepth(model, 'msms')
     depth_data = []
     for residue, depth in rd:
@@ -42,14 +35,10 @@ def calculate_residue_depth_with_sequence(pdb_file, msms_tool_path):
         one_letter = get_residue_one_letter(residue)  # Residue one-letter code
         depth_data.append([resi_num, resi_depth, ca_depth, one_letter])
     
-    # Convert to DataFrame
     df = pd.DataFrame(depth_data, columns=['resi_num', 'resi_depth', 'Ca_depth', 'amino_acid'])
     return df
 
 def filter_residues_by_depth(df, depth_threshold=4):
-    """
-    过滤 Residue depth 大于指定阈值的位点，并按格式输出。
-    """
     filtered = df[df['resi_depth'] > depth_threshold]
     residue_numbers = filtered['resi_num'].tolist()
     return " ".join(map(str, residue_numbers))
@@ -66,14 +55,9 @@ def main():
     args = parser.parse_args()
     
     try:
-        # Calculate residue depth
         depth_df = calculate_residue_depth_with_sequence(args.pdb_file, args.msms_dir)
-        
-        # Save to CSV
         depth_df.to_csv(args.output_csv, index=False)
         print(f"Residue depth and sequence data saved to {args.output_csv}")
-        
-        # Filter and output residues
         filtered_residues = filter_residues_by_depth(depth_df, args.depth_threshold)
         print(f"Residue depth < {args.depth_threshold}: {filtered_residues}")
     except Exception as e:
